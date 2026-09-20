@@ -16,18 +16,14 @@
     <!-- ============================================================= -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#e3effd] via-[#f0f6ff] to-[#eaf3fe] p-4">
         <div class="bg-white p-8 md:p-12 rounded-[24px] shadow-2xl shadow-blue-900/5 max-w-md w-full border border-white space-y-6">
-            <!-- NEW EMBEDDED IMAGE HERO BANNER -->
-	<div class="w-full text-center space-y-4">
-    		<!-- Frog Illustration Asset -->
-    		<img src="beduk-logo.png" alt="Beduk Portal Illustration" class="w-full h-auto rounded-lg mx-auto max-h-[220px] object-contain">
-    
-    		<!-- Optional: Minimal text below banner if needed, otherwise leave blank to let the image sign-in text handle it -->
-    		<div class="pt-2">
-        		<h2 class="text-xl font-bold text-[#1a2b49] tracking-tight">Welcome to Beduk</h2>
-        		<p class="text-[11px] text-slate-400 mt-0.5">Please login to continue to telemetry dashboard</p>
-    		</div>
-	</div>
-
+            <div class="flex items-center gap-3">
+                <div class="bg-[#0074d9] text-white font-extrabold text-xl h-9 w-9 rounded-xl flex items-center justify-center shadow-md shadow-blue-600/20">B</div>
+                <span class="text-xl font-bold tracking-tight text-[#1a2b49]">Beduk</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-[#1a2b49]">Welcome back</h2>
+                <p class="text-xs text-slate-400 mt-1">Sign in to view the device monitoring dashboard.</p>
+            </div>
             <div id="login-error" class="hidden text-xs bg-rose-50 border border-rose-200 text-rose-600 px-3 py-2 rounded-xl">
                 Invalid credentials entered. Please try again.
             </div>
