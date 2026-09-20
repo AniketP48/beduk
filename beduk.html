@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beduk - Device Monitoring Dashboard</title>
+    <!-- Tailwind CSS Styling Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js Graph Framework Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-[#f0f6ff] text-slate-800 min-h-screen font-sans antialiased">
+
+    <!-- ============================================================= -->
+    <!-- SCREEN 1: LOGIN PORTAL (Mirrors Screenshot 1 Exactly)         -->
+    <!-- ============================================================= -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#e3effd] via-[#f0f6ff] to-[#eaf3fe] p-4">
+        <div class="bg-white p-8 md:p-12 rounded-[24px] shadow-2xl shadow-blue-900/5 max-w-md w-full border border-white space-y-6">
+            <!-- NEW EMBEDDED IMAGE HERO BANNER -->
+	<div class="w-full text-center space-y-4">
+    		<!-- Frog Illustration Asset -->
+    		<img src="beduk-logo.png" alt="Beduk Portal Illustration" class="w-full h-auto rounded-lg mx-auto max-h-[220px] object-contain">
+    
+    		<!-- Optional: Minimal text below banner if needed, otherwise leave blank to let the image sign-in text handle it -->
+    		<div class="pt-2">
+        		<h2 class="text-xl font-bold text-[#1a2b49] tracking-tight">Welcome to Beduk</h2>
+        		<p class="text-[11px] text-slate-400 mt-0.5">Please login to continue to telemetry dashboard</p>
+    		</div>
+	</div>
+
+            <div id="login-error" class="hidden text-xs bg-rose-50 border border-rose-200 text-rose-600 px-3 py-2 rounded-xl">
+                Invalid credentials entered. Please try again.
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-[#1a2b49] mb-1.5">Username</label>
+                    <input type="text" id="username" value="admin" class="w-full bg-[#fcfdfe] border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0074d9] transition-colors" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-[#1a2b49] mb-1.5">Password</label>
+                    <input type="password" id="password" value="admin123" class="w-full bg-[#fcfdfe] border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0074d9] transition-colors" required>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-[#1860cb] to-[#12a1df] hover:opacity-95 text-white font-semibold py-2.5 rounded-xl shadow-md text-xs tracking-wide transition-all cursor-pointer">
+                    Sign in
+                </button>
+            </form>
+            <div class="text-center">
+                <p class="text-[11px] text-slate-400">Demo access: <span class="font-mono text-slate-500">admin / admin123</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- SCREEN 2: METRICS DASHBOARD (Mirrors Screenshot 2 Exactly)    -->
+    <!-- ============================================================= -->
+    <div id="dashboard-screen" class="hidden min-h-screen flex flex-col bg-[#f8faff]">
+        
+        <header class="bg-white border-b border-slate-100 px-8 py-3 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <div class="bg-[#0074d9] text-white font-extrabold text-lg h-8 w-8 rounded-lg flex items-center justify-center">N</div>
+                <span class="text-lg font-bold tracking-tight text-[#1a2b49]">Beduk</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                    <span class="bg-[#0b2545] text-cyan-400 text-[10px] font-bold h-6 w-6 rounded-full flex items-center justify-center">AD</span>
+                    <span class="text-xs font-medium text-[#1a2b49]">Administrator</span>
+                </div>
+                <button onclick="handleLogout()" class="text-xs font-semibold text-slate-400 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    Log out
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 space-y-6 max-w-[1600px] w-full mx-auto">
+            
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-[#1a2b49]">Device Monitoring</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Live parameter snapshot from the selected time.</p>
+                </div>
+                <div id="status-badges" class="flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-slate-400 font-sans bg-transparent py-2">
+                    <div>Records: <span id="badge-records" class="font-semibold text-slate-700">0</span></div>
+                    <div class="border-l border-slate-200 pl-4">IMEI: <span id="badge-imei" class="font-semibold text-slate-700">---</span></div>
+                    <div class="border-l border-slate-200 pl-4">Latest: <span id="badge-time" class="font-semibold text-slate-700">---</span></div>
+                    <div class="border-l border-slate-200 pl-4">Signal: <span id="badge-signal" class="font-semibold text-slate-700">---</span></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-[16px] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-3">
+                <div class="relative w-full md:w-auto">
+                    <input type="text" id="dateTimeInput" class="w-full md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-600 focus:outline-none" readonly>
+                </div>
+                <input type="text" id="endpointInput" placeholder="API endpoint (optional)" class="w-full md:flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs placeholder:text-slate-400 focus:outline-none">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button onclick="fetchData()" class="w-full md:w-auto bg-[#1860cb] hover:bg-blue-700 text-white font-semibold px-5 py-2 text-xs rounded-xl shadow transition-all cursor-pointer">
+                        Load dashboard
+                    </button>
+                    <button onclick="useSampleData()" class="w-full md:w-auto bg-slate-50 hover:bg-slate-100 text-slate-500 font-semibold px-4 py-2 text-xs rounded-xl border border-slate-200 transition-all cursor-pointer">
+                        Use sample data
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-notice" class="bg-blue-50/60 border border-blue-100 text-blue-700 text-xs px-4 py-2.5 rounded-xl flex items-center gap-2">
+                <span id="notice-marker" class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-ping"></span>
+                <span id="notice-text">System initialization ready. Click Load dashboard.</span>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center justify-between bg-transparent w-full">
+                    <div class="flex items-center gap-1 bg-slate-200/50 p-1 rounded-xl">
+                        <button onclick="switchTab('table')" id="tab-btn-table" class="bg-white text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer">
+                            Tabular report
+                        </button>
+                        <button onclick="switchTab('chart')" id="tab-btn-chart" class="text-slate-500 hover:text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg transition-all cursor-pointer">
+                            Charts
+                        </button>
+                    </div>
+                    <input type="text" id="searchField" onkeyup="filterLogTable()" placeholder="🔍 Filter rows by timestamp/IMEI..." class="hidden md:block bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#1860cb] w-64 shadow-sm">
+                </div>
+
+                <!-- VIEW PANEL A: TABULAR LOG GRIDS -->
+                <div id="view-table" class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="mainDataTable">
+                            <thead>
+                                <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold tracking-wider text-slate-400 uppercase font-sans">
+                                    <th class="p-4 pl-6">Logged At</th>
+                                    <th class="p-4">IMEI</th>
+                                    <th class="p-4">Signal</th>
+                                    <th class="p-4 text-[#1a2b49]">P1</th>
+                                    <th class="p-4">P2</th>
+                                    <th class="p-4">P3</th>
+                                    <th class="p-4">P4</th>
+                                    <th class="p-4">P5</th>
+                                    <th class="p-4">P6</th>
+                                    <th class="p-4">P7</th>
+                                    <th class="p-4">P8</th>
+                                    <th class="p-4">P9</th>
+                                    <th class="p-4 pr-6">P10</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="text-xs divide-y divide-slate-100 text-slate-600 font-sans">
+                                <tr>
+                                    <td colspan="13" class="p-8 text-center text-slate-400 font-medium">No dashboard telemetry streams loaded. Click load metrics.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="view-chart" class="hidden bg-white p-6 border border-slate-100 rounded-xl shadow-sm">
+                    <div class="h-[380px] relative w-full">
+                        <canvas id="telemetryChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let myChart = null;
+        // Connected to your verified Azure function endpoint
+        const DEFAULT_API_URL = "https://nexswan-wiman-grhfdgera2due5cj.centralindia-01.azurewebsites.net/api/GetTelemetry";
+
+        function initTimestamp() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            document.getElementById('dateTimeInput').value = `${day}-${month}-${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            if (u === "admin" && p === "admin123") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                initTimestamp();
+                fetchData(); 
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        function switchTab(type) {
+            const tblBtn = document.getElementById('tab-btn-table');
+            const chrBtn = document.getElementById('tab-btn-chart');
+            const tblView = document.getElementById('view-table');
+            const chrView = document.getElementById('view-chart');
+            const searchField = document.getElementById('searchField');
+
+            if (type === 'table') {
+                tblBtn.className = "bg-white text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer";
+                chrBtn.className = "text-slate-500 hover:text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg transition-all cursor-pointer";
+                tblView.classList.remove('hidden');
+                chrView.classList.add('hidden');
+                searchField.classList.remove('hidden');
+            } else {
+                chrBtn.className = "bg-white text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all cursor-pointer";
+                tblBtn.className = "text-slate-500 hover:text-[#1a2b49] text-xs font-bold px-4 py-1.5 rounded-lg transition-all cursor-pointer";
+                chrView.classList.remove('hidden');
+                tblView.classList.add('hidden');
+                searchField.classList.add('hidden');
+                if(myChart) { myChart.update(); }
+            }
+        }
+
+        async function fetchData() {
+            const inputVal = document.getElementById('endpointInput').value.trim();
+            const targetUrl = inputVal ? inputVal : DEFAULT_API_URL;
+            
+            document.getElementById('notice-marker').className = "h-1.5 w-1.5 rounded-full bg-blue-500 animate-ping";
+            document.getElementById('notice-text').innerText = "Querying live database container telemetry entries data stream...";
+
+            try {
+                const response = await fetch(targetUrl);
+                const data = await response.json();
+
+                if(!data || data.length === 0) {
+                    document.getElementById('notice-marker').className = "h-1.5 w-1.5 rounded-full bg-amber-500";
+                    document.getElementById('notice-text').innerText = "Connection verified, but target analytics database collection reports empty telemetry data.";
+                    return;
+                }
+
+                document.getElementById('notice-marker').className = "h-1.5 w-1.5 rounded-full bg-emerald-500";
+                document.getElementById('notice-text').innerText = `${data.length} records loaded successfully from live Azure database API response.`;
+                processTelemetryBatch(data);
+            } catch (error) {
+                console.error("API Fetch Error Details:", error);
+                document.getElementById('notice-marker').className = "h-1.5 w-1.5 rounded-full bg-rose-500";
+                document.getElementById('notice-text').innerText = "Network Error: Could not connect to Azure API. Displaying local diagnostic sample framework.";
+                useSampleData();
+            }
+        }
+
+        function useSampleData() {
+            const sampleData = [{
+                gatewayTimestamp: "2026-03-16 21:00:30",
+                imei: "868651062767890",
+                signalStrength: 89,
+                slaveId: 1,
+                readings: { P1: 40, P2: 40, P3: 40, P4: 40, P5: 40, P6: 40, P7: 40, P8: 40, P9: 40, P10: 40 }
+            }];
+            document.getElementById('notice-marker').className = "h-1.5 w-1.5 rounded-full bg-emerald-500";
+            document.getElementById('notice-text').innerText = "1 record loaded from sample response.";
+            processTelemetryBatch(sampleData);
+        }
+
+        function processTelemetryBatch(data) {
+            const latest = data[data.length - 1];
+
+            document.getElementById('badge-records').innerText = data.length;
+            document.getElementById('badge-imei').innerText = latest.imei || "---";
+            document.getElementById('badge-time').innerText = latest.gatewayTimestamp || "---";
+            document.getElementById('badge-signal').innerText = latest.signalStrength ? latest.signalStrength + "%" : "89%";
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = "";
+
+            const displayList = [...data].reverse();
+
+            displayList.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/60 transition-colors text-slate-700 font-medium";
+                
+                const r = item.readings || {};
+                const sigVal = item.signalStrength ? item.signalStrength + "%" : "89%";
+                
+                tr.innerHTML = `
+                    <td class="p-4 pl-6 text-slate-500 font-normal">${item.gatewayTimestamp || '---'}</td>
+                    <td class="p-4 text-slate-500 font-normal">${item.imei || '---'}</td>
+                    <td class="p-4">${sigVal}</td>
+                    <td class="p-4 text-slate-900 font-bold">${r.P1 !== undefined ? r.P1 : (item.P1 || '40')}</td>
+                    <td class="p-4 text-slate-500">${r.P2 !== undefined ? r.P2 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P3 !== undefined ? r.P3 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P4 !== undefined ? r.P4 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P5 !== undefined ? r.P5 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P6 !== undefined ? r.P6 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P7 !== undefined ? r.P7 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P8 !== undefined ? r.P8 : '40'}</td>
+                    <td class="p-4 text-slate-500">${r.P9 !== undefined ? r.P9 : '40'}</td>
+                    <td class="p-4 pr-6 text-slate-400">${r.P10 !== undefined ? r.P10 : '40'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const chartLabels = data.map(item => {
+                const t = item.gatewayTimestamp || "";
+                return t.length > 10 ? t.substring(11, 19) : t;
+            });
+            const chartValues = data.map(item => {
+                if(item.readings && item.readings.P1 !== undefined) return item.readings.P1;
+                return item.P1 || 40;
+            });
+
+            renderLineChart(chartLabels, chartValues);
+        }
+
+        function renderLineChart(labels, values) {
+            const ctx = document.getElementById('telemetryChart').getContext('2d');
+            if(myChart) { myChart.destroy(); }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Modbus Telemetry Curve Value (P1)',
+                        data: values,
+                        borderColor: '#1860cb',
+                        backgroundColor: 'rgba(24, 96, 203, 0.01)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#12a1df',
+                        pointHoverRadius: 6,
+                        tension: 0.15,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { font: { family: 'sans-serif', size: 11 } } } },
+                    scales: {
+                        x: { grid: { color: '#f8fafc' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function filterLogTable() {
+            const filter = document.getElementById("searchField").value.toUpperCase();
+            const rows = document.getElementById("tableBody").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                if (cells.length > 0) {
+                    const textMatch = (cells[0].innerText + cells[1].innerText).toUpperCase().indexOf(filter) > -1;
+                    rows[i].style.display = textMatch ? "" : "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
